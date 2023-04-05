@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using BotLinkedn.Models;
 using OpenQA.Selenium;
@@ -42,8 +41,8 @@ namespace BotLinkedn.Commands
 
         public void SearchKeyWord()
         {
-            var messageCollapse = _driver.FindElement(By.XPath("//li-icon[contains(@type,'chevron-down')]"));
-            messageCollapse.Click();
+            var CollapseIcons = _driver.FindElements(By.XPath("//li-icon[contains(@type,'chevron-down')]"));
+            CollapseIcons[1].Click();
 
             var inputSearch = _driver.FindElement(By.XPath("//input[contains(@class, 'search-global-typeahead__input')]"));
             inputSearch.Click();
