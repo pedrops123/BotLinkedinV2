@@ -17,6 +17,7 @@ namespace BotLinkedn
 
             driver.SearchKeyWord();
 
+            driver.SendMessageToAll();
         }
     }
 }
