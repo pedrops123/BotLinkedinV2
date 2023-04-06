@@ -6,6 +6,6 @@ namespace BotLinkedn.Interfaces
     {
         void CreateFile(string nameFolder);
 
-        void WriteFile(ICollection<string> data);
+        void WriteFile(string data, string nameFolder);
     }
 }

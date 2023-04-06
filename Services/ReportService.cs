@@ -9,16 +9,25 @@ namespace BotLinkedn.Services
     {
         private static int _positionBin = Assembly.GetExecutingAssembly().Location.IndexOf("bin");
         private static readonly string _localFolder = Assembly.GetAssembly(typeof(ReportService)).Location.Substring(0, _positionBin);
-
+        private static string _nameFile = "ReportBot.csv";
         public void CreateFile(string nameFolder)
         {
-            var pathComplete = Path.Combine(_localFolder, nameFolder);
+            var pathComplete = Path.Combine(_localFolder, nameFolder, _nameFile);
+            
             File.Create(pathComplete).Dispose();
+
+            WriteFile("Nome;Link Contato;Ja Enviado?;",nameFolder);
         }
 
-        public void WriteFile(ICollection<string> data)
+        public void WriteFile(string data, string nameFolder)
         {
-            throw new System.NotImplementedException();
+            var pathFile = Path.Combine(_localFolder, nameFolder, _nameFile);
+
+            using (StreamWriter writer = new StreamWriter(pathFile, true))
+            {
+                writer.WriteLine(data);
+                writer.Close();
+            }
         }
     }
 }

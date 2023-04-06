@@ -25,7 +25,6 @@ namespace BotLinkedn.Commands
             _loginModel = loginModel;
             _provider = provider;
             _reportService = _provider.GetService<IReportService>();
-
             _reportService.CreateFile(_loginModel.FolderName);
         }
 
@@ -84,46 +83,57 @@ namespace BotLinkedn.Commands
                 {
                     try
                     {
-                        var name = elementDiv.FindElement(By.XPath("//span[@dir='ltr']")).Text.Split("\r")[0];
-                        var btnConnect = elementDiv.FindElement(By.XPath("//button[contains(span,'Conectar')]"));
-                        btnConnect.Click();
-                        Thread.Sleep(new TimeSpan(0,0,6));   
+                        var name = elementDiv.Text.Split("\r")[0];
 
-                        bool existsDialogRequest = _driver.FindElements(By.XPath("//button[contains(@aria-label,'Other')]")).Count > 0;
+                        var existsConnect = elementDiv.FindElements(By.XPath("//button[contains(span,'Conectar')]")).Count > 0;
 
-                        if(existsDialogRequest)
-                         {
-                             var dialogRequest = _driver.FindElement(By.XPath("//div[contains(@role,'dialog')]"));
-                             var buttonOther = dialogRequest.FindElement(By.XPath("//button[contains(@aria-label,'Other')]"));
-                             var buttonConnect = dialogRequest.FindElement(By.XPath("//button[contains(@aria-label, 'Conecte')]"));
-                             buttonOther.Click();
-                             buttonConnect.Click();
-                             Thread.Sleep(new TimeSpan(0,0,6));                                   
-                         }
+                        if(existsConnect)
+                        {
+                            var btnConnect = elementDiv.FindElement(By.XPath("//button[contains(span,'Conectar')]"));
+                            btnConnect.Click();
+                            Thread.Sleep(new TimeSpan(0,0,6));   
 
-                        bool existsInputEmail = _driver.FindElements(By.XPath("//input[contains(@type,'email')]")).Count > 0;
+                            bool existsDialogRequest = _driver.FindElements(By.XPath("//button[contains(@aria-label,'Other')]")).Count > 0;
 
-                         if(existsInputEmail)
-                         {
-                            var emailInput = _driver.FindElement(By.XPath("//input[contains(@type,'email')]"));
-                            emailInput.SendKeys(_loginModel.Userame);
-                         }
+                            if(existsDialogRequest)
+                            {
+                                var dialogRequest = _driver.FindElement(By.XPath("//div[contains(@role,'dialog')]"));
+                                var buttonOther = dialogRequest.FindElement(By.XPath("//button[contains(@aria-label,'Other')]"));
+                                var buttonConnect = dialogRequest.FindElement(By.XPath("//button[contains(@aria-label, 'Conecte')]"));
+                                buttonOther.Click();
+                                buttonConnect.Click();
+                                Thread.Sleep(new TimeSpan(0,0,6));                                   
+                            }
 
-                        var message = _loginModel.Message.Replace("{{name}}", name);
-                        var btnAddNote = _driver.FindElement(By.XPath("//button[contains(@aria-label, 'Adicionar nota')]"));
+                            bool existsInputEmail = _driver.FindElements(By.XPath("//input[contains(@type,'email')]")).Count > 0;
 
-                        btnAddNote.Click();
+                            if(existsInputEmail)
+                            {
+                               var emailInput = _driver.FindElement(By.XPath("//input[contains(@type,'email')]"));
+                               emailInput.SendKeys(_loginModel.Userame);
+                            }
+
+                            var message = _loginModel.Message.Replace("{{name}}", name);
+                            var btnAddNote = _driver.FindElement(By.XPath("//button[contains(@aria-label, 'Adicionar nota')]"));
+
+                            btnAddNote.Click();
                    
-                        var textArea = _driver.FindElement(By.XPath("//textarea[contains(@id, 'custom-message')]"));
+                            var textArea = _driver.FindElement(By.XPath("//textarea[contains(@id, 'custom-message')]"));
 
-                         textArea.SendKeys(message);
+                            textArea.SendKeys(message);
 
-                         var btnSendMessage = _driver.FindElement(By.XPath("//button[contains(@aria-label,'Enviar agora')]"));
+                            var btnSendMessage = _driver.FindElement(By.XPath("//button[contains(@aria-label,'Enviar agora')]"));
 
-                         btnSendMessage.Click();
+                            btnSendMessage.Click();
 
-                     Thread.Sleep(new TimeSpan(0,0,6));
-                     
+                            _reportService.WriteFile($"{name};link;Não", _loginModel.FolderName);
+
+                            Thread.Sleep(new TimeSpan(0,0,6));
+                        }
+                        else
+                        {
+                            _reportService.WriteFile($"{name};link;Sim", _loginModel.FolderName);
+                        }                        
                     }
                     catch(Exception e)
                     {

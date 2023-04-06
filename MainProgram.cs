@@ -1,5 +1,4 @@
-﻿using System;
-using BotLinkedn.Drivers;
+﻿using BotLinkedn.Drivers;
 using BotLinkedn.Models;
 using BotLinkedn.Utils;
 using Microsoft.Extensions.DependencyInjection;
