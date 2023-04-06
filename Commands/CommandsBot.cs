@@ -1,7 +1,10 @@
 using System;
 using System.Threading;
+using BotLinkedn.Interfaces;
 using BotLinkedn.Models;
+using Microsoft.Extensions.DependencyInjection;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 namespace BotLinkedn.Commands
 {
@@ -10,19 +13,27 @@ namespace BotLinkedn.Commands
         private readonly IWebDriver _driver;
         private readonly LoginModel _loginModel;
         private readonly int _positionButtonTypePerson = 1;
+        private readonly ServiceProvider _provider;
+        private readonly IReportService _reportService;
+        
         public CommandsBot(
             IWebDriver driver,
-            LoginModel loginModel)
+            LoginModel loginModel,
+            ServiceProvider provider)
         {
             _driver = driver;
             _loginModel = loginModel;
+            _provider = provider;
+            _reportService = _provider.GetService<IReportService>();
+
+            _reportService.CreateFile(_loginModel.FolderName);
         }
 
         public void NavigateAndLogin()
         {
             _driver.Navigate().GoToUrl("https://www.linkedin.com/");
 
-            Thread.Sleep(new TimeSpan(0,0,10));
+             WaitUntilElementIsVisible(By.XPath("//input[@id='session_key']"));
 
             var inputLogin = _driver.FindElement(By.XPath("//input[@id='session_key']"));
             var inputPassword = _driver.FindElement(By.XPath("//input[@id='session_password']"));
@@ -41,7 +52,10 @@ namespace BotLinkedn.Commands
 
         public void SearchKeyWord()
         {
-            var CollapseIcons = _driver.FindElements(By.XPath("//li-icon[contains(@type,'chevron-down')]"));
+            var xpathChevronDown = "//li-icon[contains(@type,'chevron-down')]";
+
+            WaitUntilElementIsVisible(By.XPath(xpathChevronDown),30);
+            var CollapseIcons = _driver.FindElements(By.XPath(xpathChevronDown));
             CollapseIcons[1].Click();
 
             var inputSearch = _driver.FindElement(By.XPath("//input[contains(@class, 'search-global-typeahead__input')]"));
@@ -49,14 +63,13 @@ namespace BotLinkedn.Commands
             inputSearch.SendKeys(_loginModel.KeyWord);
             inputSearch.SendKeys(Keys.Enter);
 
-            Thread.Sleep(new TimeSpan(0,0,3));
+            var xpathBtnPersons = $"(//button[contains(@class,'artdeco-pill')])[{_positionButtonTypePerson}]";
+            
+            WaitUntilElementIsVisible(By.XPath(xpathBtnPersons));
 
-            var btnPersons = _driver.FindElement(By.XPath($"(//button[contains(@class,'artdeco-pill')])[{_positionButtonTypePerson}]"));
+            var btnPersons = _driver.FindElement(By.XPath(xpathBtnPersons));
 
             btnPersons.Click();
-
-            Thread.Sleep(new TimeSpan(0,0,10));
-
         }
 
         public void SendMessageToAll()
@@ -88,7 +101,8 @@ namespace BotLinkedn.Commands
                              Thread.Sleep(new TimeSpan(0,0,6));                                   
                          }
 
-                         bool existsInputEmail = _driver.FindElements(By.XPath("//input[contains(@type,'email')]")).Count > 0;
+                        bool existsInputEmail = _driver.FindElements(By.XPath("//input[contains(@type,'email')]")).Count > 0;
+
                          if(existsInputEmail)
                          {
                             var emailInput = _driver.FindElement(By.XPath("//input[contains(@type,'email')]"));
@@ -109,6 +123,7 @@ namespace BotLinkedn.Commands
                          btnSendMessage.Click();
 
                      Thread.Sleep(new TimeSpan(0,0,6));
+                     
                     }
                     catch(Exception e)
                     {
@@ -116,11 +131,15 @@ namespace BotLinkedn.Commands
                     }
                 }
 
-                ArrowDownPage(30);
-
                 Thread.Sleep(new TimeSpan(0,0,10));
 
-                var btnNextPagination = _driver.FindElement(By.XPath("//button[contains(@aria-label,'Avançar')]"));
+                ArrowDownPage(30);
+
+                var xpathBtnNextPagination = "//button[contains(@aria-label,'Avançar')]";
+
+                var test = WaitUntilElementIsVisible(By.XPath(xpathBtnNextPagination), 30);
+
+                var btnNextPagination = _driver.FindElement(By.XPath(xpathBtnNextPagination));
 
                 if(!btnNextPagination.Enabled)
                 {
@@ -142,6 +161,21 @@ namespace BotLinkedn.Commands
             for(int i = 0; i <= times; i++){
                 bodyPage.SendKeys(Keys.ArrowDown);
             }
+        }
+
+        public IWebElement WaitUntilElementIsVisible(By element, int seconds = 10)
+        {
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
+                return wait.Until(driver => driver.FindElement(element));
+            }
+            catch(NoSuchElementException)
+            {
+                Console.WriteLine($"Elemento { element } não foi encontrado no contexto da pagina !");
+
+                throw;
+            }           
         }
     }
 }
