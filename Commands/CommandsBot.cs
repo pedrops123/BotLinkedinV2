@@ -143,12 +143,18 @@ namespace BotLinkedn.Commands
 
                 Thread.Sleep(new TimeSpan(0,0,10));
 
-                ArrowDownPage(30);
-
+                bool existsElementNext = false;
                 var xpathBtnNextPagination = "//button[contains(@aria-label,'Avançar')]";
 
-                var test = WaitUntilElementIsVisible(By.XPath(xpathBtnNextPagination), 30);
-
+                while(existsElementNext == false)
+                {    
+                    existsElementNext = _driver.FindElements(By.XPath(xpathBtnNextPagination)).Count > 0;
+                    if(existsElementNext == false)
+                    {
+                         ArrowDownPage(1);
+                    }
+                }
+               
                 var btnNextPagination = _driver.FindElement(By.XPath(xpathBtnNextPagination));
 
                 if(!btnNextPagination.Enabled)
@@ -180,11 +186,11 @@ namespace BotLinkedn.Commands
                 WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
                 return wait.Until(driver => driver.FindElement(element));
             }
-            catch(NoSuchElementException)
+            catch(Exception e)
             {
                 Console.WriteLine($"Elemento { element } não foi encontrado no contexto da pagina !");
 
-                throw;
+                throw e;
             }           
         }
     }
