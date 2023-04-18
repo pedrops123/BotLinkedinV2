@@ -73,11 +73,15 @@ namespace BotLinkedn.Commands
 
         public void SendMessageToAll()
         {
+            string xpathResultGrid = "//div[@class='entity-result__item']";
+
+            WaitUntilElementIsVisible(By.XPath(xpathResultGrid));
+
             bool isLocked = false;
 
             while(!isLocked)
             {
-                var results = _driver.FindElements(By.XPath("//div[@class='entity-result__item']"));
+                var results = _driver.FindElements(By.XPath(xpathResultGrid));
                 
                 foreach(IWebElement elementDiv in results)
                 {
