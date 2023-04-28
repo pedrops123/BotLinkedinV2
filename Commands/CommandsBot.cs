@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading;
 using BotLinkedn.Interfaces;
 using BotLinkedn.Models;
@@ -130,6 +131,26 @@ namespace BotLinkedn.Commands
 
                             btnSendMessage.Click();
 
+                            var xPathLimitLockAddContact = "//div[contains(@class, 'ip-fuse-limit-alert__warning')]";
+                            var xPathButtonOkLimitLockAddContact = "//button[contains(@aria-label, 'Entendi')]";
+
+                            Thread.Sleep(new TimeSpan(0,0,3));
+
+                            var hasElementLimitLock = _driver.FindElements(By.XPath(xPathLimitLockAddContact)).Count;
+
+                            if(hasElementLimitLock > 0)
+                            {
+                                var btnOkLimitLockAddContact = _driver.FindElement(By.XPath(xPathButtonOkLimitLockAddContact));
+
+                                btnOkLimitLockAddContact.Click();
+
+                                Console.WriteLine("Excedeu o limite de convites por semana ! Tente novamente na proxima.");
+
+                                Logout();
+
+                                goto end;
+                            }
+
                             _reportService.WriteFile($"{name};link;Não", _loginModel.FolderName);
 
                             Thread.Sleep(new TimeSpan(0,0,6));
@@ -171,8 +192,34 @@ namespace BotLinkedn.Commands
                 }
 
                  Thread.Sleep(new TimeSpan(0,0,5));
-            } 
+            }
+
+            end:; 
         }
+
+        private void Logout()
+        {
+            string xPathMenuButtons = "//span[contains(@class,'global-nav__primary-link-text')]";
+            string classSubMenuLogout = "artdeco-dropdown__content-inner";
+
+            var topMenuButtons = _driver.FindElements(By.XPath(xPathMenuButtons));
+
+            topMenuButtons[5].Click();
+
+            var buttonsSubMenu = _driver.FindElements(By.ClassName(classSubMenuLogout));
+
+            var btnLogout = buttonsSubMenu[0].FindElements(By.TagName("li")).LastOrDefault();
+            
+            btnLogout.Click();
+
+            Thread.Sleep(new TimeSpan(0,0,6));
+        }
+
+        public void CloseNavigator()
+        {
+            _driver.Close();
+        }
+
 
         public void ArrowDownPage(int times)
         {

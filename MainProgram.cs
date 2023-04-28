@@ -27,6 +27,8 @@ namespace BotLinkedn
             driver.SearchKeyWord();
 
             driver.SendMessageToAll();
+
+            driver.CloseNavigator();
         }
 
         private static ServiceProvider ConfigureStartupServices(){
