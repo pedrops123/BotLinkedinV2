@@ -13,7 +13,6 @@ namespace BotLinkedn.Commands
     {
         private readonly IWebDriver _driver;
         private readonly LoginModel _loginModel;
-        private readonly int _positionButtonTypePerson = 1;
         private readonly ServiceProvider _provider;
         private readonly IReportService _reportService;
         
@@ -56,14 +55,24 @@ namespace BotLinkedn.Commands
 
             WaitUntilElementIsVisible(By.XPath(xpathChevronDown),30);
             var CollapseIcons = _driver.FindElements(By.XPath(xpathChevronDown));
-            CollapseIcons[1].Click();
-
+            try
+            {
+                CollapseIcons[1].Click();
+            }
+            catch(Exception)
+            {
+                CollapseIcons[0].Click();
+            }
+            
             var inputSearch = _driver.FindElement(By.XPath("//input[contains(@class, 'search-global-typeahead__input')]"));
+            inputSearch.Clear();
             inputSearch.Click();
             inputSearch.SendKeys(_loginModel.KeyWord);
             inputSearch.SendKeys(Keys.Enter);
 
-            var xpathBtnPersons = $"(//button[contains(@class,'artdeco-pill')])[{_positionButtonTypePerson}]";
+            ValidateSearchNotFound();
+
+            var xpathBtnPersons = "//button[contains(@class,'artdeco-pill') and text()='Pessoas']";
             
             WaitUntilElementIsVisible(By.XPath(xpathBtnPersons));
 
@@ -192,6 +201,8 @@ namespace BotLinkedn.Commands
                 }
 
                  Thread.Sleep(new TimeSpan(0,0,5));
+
+                 ValidateSearchNotFound();
             }
 
             end:; 
@@ -220,6 +231,22 @@ namespace BotLinkedn.Commands
             _driver.Close();
         }
 
+        public void ValidateSearchNotFound()
+        {
+              string xPathSearchNotFound = "//section[contains(@class,'artdeco-empty-state ember-view')]";
+
+              string XPathChevronUp = "//li-icon[contains(@type,'chevron-up')]";
+
+              var elementNotFound = _driver.FindElements(By.XPath(xPathSearchNotFound));
+
+                 if(elementNotFound.Count > 0)
+                 {
+                    var buttonUpMessage = _driver.FindElement(By.XPath(XPathChevronUp));
+                    buttonUpMessage.Click();
+                    
+                    SearchKeyWord();
+                 }
+        }
 
         public void ArrowDownPage(int times)
         {
