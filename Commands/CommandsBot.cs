@@ -99,11 +99,11 @@ namespace BotLinkedn.Commands
                     {
                         var name = elementDiv.Text.Split("\r")[0];
 
-                        var existsConnect = elementDiv.FindElements(By.XPath("//button[contains(span,'Conectar')]")).Count > 0;
+                        var existsConnect = elementDiv.FindElements(By.TagName("button")).Where(r => r.Text == "Conectar" ).Count() > 0;
 
                         if(existsConnect)
                         {
-                            var btnConnect = elementDiv.FindElement(By.XPath("//button[contains(span,'Conectar')]"));
+                            var btnConnect = elementDiv.FindElements(By.TagName("button")).Where(r => r.Text == "Conectar").FirstOrDefault();
                             btnConnect.Click();
                             Thread.Sleep(new TimeSpan(0,0,6));   
 
@@ -160,6 +160,21 @@ namespace BotLinkedn.Commands
                                 goto end;
                             }
 
+                            var xPathErrorSendInviteIcon = "//li-icon[contains(@type,'error-pebble-icon')]";
+                            var btnExitErrorSendInviteIcon = "//div[contains(@data-test-artdeco-toast-item-type,'error')]/button";
+
+                            var hasElementErrorSendInvite = _driver.FindElements(By.XPath(xPathErrorSendInviteIcon));
+
+                            if(hasElementErrorSendInvite.Count > 0)
+                            {
+                                var btnExitError = _driver.FindElement(By.XPath(btnExitErrorSendInviteIcon));
+
+                                btnExitError.Click();
+
+                                goto endLoop;
+                            }
+                            
+
                             _reportService.WriteFile($"{name};link;Não", _loginModel.FolderName);
 
                             Thread.Sleep(new TimeSpan(0,0,6));
@@ -173,6 +188,8 @@ namespace BotLinkedn.Commands
                     {
                         System.Console.WriteLine("error");
                     }
+
+                    endLoop:;
                 }
 
                 Thread.Sleep(new TimeSpan(0,0,10));
