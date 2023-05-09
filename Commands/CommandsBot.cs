@@ -49,7 +49,7 @@ namespace BotLinkedn.Commands
             submitBtn.Click();
         }
 
-        public void SearchKeyWord()
+        public void SearchKeyWord(string keyWord = "Pessoas")
         {
             var xpathChevronDown = "//li-icon[contains(@type,'chevron-down')]";
 
@@ -67,12 +67,12 @@ namespace BotLinkedn.Commands
             var inputSearch = _driver.FindElement(By.XPath("//input[contains(@class, 'search-global-typeahead__input')]"));
             inputSearch.Clear();
             inputSearch.Click();
-            inputSearch.SendKeys(_loginModel.KeyWord);
+            inputSearch.SendKeys(keyWord.ToLower() == "pessoas" ? _loginModel.KeyWordAddConnections : _loginModel.KeyWordSearchJobs);
             inputSearch.SendKeys(Keys.Enter);
 
             ValidateSearchNotFound();
 
-            var xpathBtnPersons = "//button[contains(@class,'artdeco-pill') and text()='Pessoas']";
+            var xpathBtnPersons = $"//button[contains(@class,'artdeco-pill') and text()='{ keyWord }']";
             
             WaitUntilElementIsVisible(By.XPath(xpathBtnPersons));
 
