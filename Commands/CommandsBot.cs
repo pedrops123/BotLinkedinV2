@@ -99,6 +99,8 @@ namespace BotLinkedn.Commands
                     {
                         var name = elementDiv.Text.Split("\r")[0];
 
+                        var url = elementDiv.FindElement(By.XPath("div[contains(@class,'entity-result__universal-image')]/div/a")).GetAttribute("href");
+
                         var existsConnect = elementDiv.FindElements(By.TagName("button")).Where(r => r.Text == "Conectar" ).Count() > 0;
 
                         if(existsConnect)
@@ -174,14 +176,13 @@ namespace BotLinkedn.Commands
                                 goto endLoop;
                             }
                             
-
-                            _reportService.WriteFile($"{name};link;Não", _loginModel.FolderName);
+                            _reportService.WriteFile($"{name};{url};Não", _loginModel.FolderName);
 
                             Thread.Sleep(new TimeSpan(0,0,6));
                         }
                         else
                         {
-                            _reportService.WriteFile($"{name};link;Sim", _loginModel.FolderName);
+                            _reportService.WriteFile($"{name};{url};Sim", _loginModel.FolderName);
                         }                        
                     }
                     catch(Exception e)
