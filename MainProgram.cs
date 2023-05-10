@@ -54,7 +54,10 @@ namespace BotLinkedn
             var driver = ChromeDriverPrepare.PrepareDriver(login, serviceProvider);
 
             driver.NavigateAndLogin();
+
             driver.SearchKeyWord("Vagas");
+
+            driver.ApplyToAllJobs();
         }
         
         static void Main(string[] args)

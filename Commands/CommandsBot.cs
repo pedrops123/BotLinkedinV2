@@ -266,6 +266,46 @@ namespace BotLinkedn.Commands
                  }
         }
 
+        public void ApplyToAllJobs()
+        {
+            int countPagination = 0;
+            
+            topJobs:;
+
+            string xPathGridJobs = "//ul[contains(@class,'scaffold-layout__list-container')]/li";
+            WaitUntilElementIsVisible(By.XPath(xPathGridJobs), 20);
+
+            var gridJobsResults = _driver.FindElements(By.XPath(xPathGridJobs));
+
+            foreach(IWebElement tileJob in gridJobsResults)
+            {
+                var teste = tileJob;
+            }
+
+            var url = _driver.Url;
+
+            if(!url.Contains("start"))
+            {
+                countPagination = 25;
+
+                url = url + $"&start={ countPagination }";
+            }
+            else
+            {
+                countPagination = countPagination + 25;
+
+                var indexOfStartParameter = url.IndexOf("&start");
+
+                url  = url.Remove(indexOfStartParameter);
+
+                url = url + $"&start={ countPagination }";
+            }
+
+            _driver.Navigate().GoToUrl(url);
+
+            goto topJobs;
+        }
+
         public void ArrowDownPage(int times)
         {
             IWebElement bodyPage = _driver.FindElement(By.TagName("body"));
