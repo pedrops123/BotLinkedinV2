@@ -268,6 +268,8 @@ namespace BotLinkedn.Commands
 
         public void ApplyToAllJobs()
         {
+            Thread.Sleep(new TimeSpan(0,0,6));
+
             int countPagination = 0;
             
             topJobs:;
@@ -279,7 +281,46 @@ namespace BotLinkedn.Commands
 
             foreach(IWebElement tileJob in gridJobsResults)
             {
-                var teste = tileJob;
+                var tagSimpleApply = tileJob.FindElements(By.TagName("li")).Where(r=>r.Text.ToLower().Contains("simplificada")).FirstOrDefault();
+                
+                if(tagSimpleApply != null)
+                {
+                    var panelDescriptionJob = _driver.FindElement(By.XPath("//div[contains(@class,'jobs-unified-top-card__content--two-pane')]"));
+                    var btnSimpleApply = panelDescriptionJob.FindElements(By.TagName("button")).Where(r => r.Text.ToLower().Contains("simplificada")).FirstOrDefault();
+
+                    btnSimpleApply.Click();
+
+                    Thread.Sleep(new TimeSpan(0,0,6));
+
+                    var formApplyJob =  _driver.FindElement(By.XPath("//div[contains(@class,'jobs-easy-apply-content')]"));
+
+                    var buttonNext = formApplyJob.FindElement(By.TagName("button"));
+
+                    buttonNext.Click();
+
+                    var resumeArea = _driver.FindElements(By.XPath("//span[contains(@class,'jobs-document-upload__title--is-required')]"));
+
+                    if(resumeArea.Count > 0)
+                    {
+                        buttonNext.Click();
+                    }
+
+                    var finalForm = _driver.FindElements(By.XPath("//div[contains(@class,'jobs-easy-apply-content')]/div/form"));
+
+                    if(finalForm.Count > 0)
+                    {
+                        var btnCloseModal = _driver.FindElement(By.XPath("//div[contains(@class,'artdeco-modal-overlay ')]/div/button/li-icon"));
+                        btnCloseModal.Click();
+                        Thread.Sleep(new TimeSpan(0,0,5));
+
+                        var footerDialog = _driver.FindElements(By.XPath("//div[contains(@role,'alertdialog')]/div[contains(@class,'artdeco-modal__actionbar')]/button"));
+
+                        
+
+
+                    }
+
+                }
             }
 
             var url = _driver.Url;
