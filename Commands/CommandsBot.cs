@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using BotLinkedn.Interfaces;
@@ -15,6 +16,7 @@ namespace BotLinkedn.Commands
         private readonly LoginModel _loginModel;
         private readonly ServiceProvider _provider;
         private readonly IReportService _reportService;
+        private readonly IReadOnlyCollection<string> _objectsForms = new List<string>(){ "input" , "textarea", "select" };
         
         public CommandsBot(
             IWebDriver driver,
@@ -266,6 +268,17 @@ namespace BotLinkedn.Commands
                  }
         }
 
+        public void CloseModalJobs()
+        {
+            var btnCloseModal = _driver.FindElement(By.XPath("//div[contains(@class,'artdeco-modal-overlay ')]/div/button/li-icon"));
+            btnCloseModal.Click();
+            Thread.Sleep(new TimeSpan(0,0,5));
+
+            var footerDialog = _driver.FindElements(By.XPath("//div[contains(@role,'alertdialog')]/div[contains(@class,'artdeco-modal__actionbar')]/button"));
+            var btnDiscard =  footerDialog.Where(r => r.Text.ToLower() == "descartar").FirstOrDefault();
+            btnDiscard.Click();
+        }
+
         public void ApplyToAllJobs()
         {
             Thread.Sleep(new TimeSpan(0,0,6));
@@ -281,6 +294,10 @@ namespace BotLinkedn.Commands
 
             foreach(IWebElement tileJob in gridJobsResults)
             {
+                tileJob.Click();
+
+                Thread.Sleep(new TimeSpan(0,0,10));
+
                 var tagSimpleApply = tileJob.FindElements(By.TagName("li")).Where(r=>r.Text.ToLower().Contains("simplificada")).FirstOrDefault();
                 
                 if(tagSimpleApply != null)
@@ -290,9 +307,11 @@ namespace BotLinkedn.Commands
 
                     btnSimpleApply.Click();
 
-                    Thread.Sleep(new TimeSpan(0,0,6));
+                    string xPathFormApplyJob = "//div[contains(@class,'jobs-easy-apply-content')]";
 
-                    var formApplyJob =  _driver.FindElement(By.XPath("//div[contains(@class,'jobs-easy-apply-content')]"));
+                    WaitUntilElementIsVisible(By.XPath(xPathFormApplyJob), 20);
+
+                    var formApplyJob = _driver.FindElement(By.XPath(xPathFormApplyJob));
 
                     var buttonNext = formApplyJob.FindElement(By.TagName("button"));
 
@@ -309,18 +328,41 @@ namespace BotLinkedn.Commands
 
                     if(finalForm.Count > 0)
                     {
-                        var btnCloseModal = _driver.FindElement(By.XPath("//div[contains(@class,'artdeco-modal-overlay ')]/div/button/li-icon"));
-                        btnCloseModal.Click();
-                        Thread.Sleep(new TimeSpan(0,0,5));
+                        foreach (string field in _objectsForms)
+                        {
+                            var elementsForm = finalForm[0].FindElements(By.TagName(field));
 
-                        var footerDialog = _driver.FindElements(By.XPath("//div[contains(@role,'alertdialog')]/div[contains(@class,'artdeco-modal__actionbar')]/button"));
+                            foreach(IWebElement element in elementsForm)
+                            {
+                                var valueElement = element.GetAttribute("value");
+
+                                if(string.IsNullOrEmpty(valueElement))
+                                {
+                                    CloseModalJobs();
+
+                                    goto nextTile;
+                                }
+                            }
+                        }
+
+                        var xPathgroupFormNotAccessible = "//div[contains(@class,'jobs-easy-apply-form-section__grouping')]";
+
+                        bool hasGroupFormNotAccessible = finalForm[0].FindElements(By.XPath(xPathgroupFormNotAccessible)).Count() > 0;
+
+                        if(hasGroupFormNotAccessible)
+                        {
+                            CloseModalJobs();
+
+                            goto nextTile;
+                        }
+
+                        string xPathBtnSubmitJob = "//footer[contains(@role,'presentation')]/div/button"; 
 
                         
-
-
                     }
-
                 }
+
+                nextTile:;
             }
 
             var url = _driver.Url;
