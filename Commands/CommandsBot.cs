@@ -76,7 +76,7 @@ namespace BotLinkedn.Commands
 
             var xpathBtnPersons = $"//button[contains(@class,'artdeco-pill') and text()='{ keyWord }']";
             
-            WaitUntilElementIsVisible(By.XPath(xpathBtnPersons));
+            WaitUntilElementIsVisible(By.XPath(xpathBtnPersons), 20);
 
             var btnPersons = _driver.FindElement(By.XPath(xpathBtnPersons));
 
@@ -268,7 +268,7 @@ namespace BotLinkedn.Commands
                  }
         }
 
-        public void CloseModalJobs()
+        private void CloseModalJobs()
         {
             var btnCloseModal = _driver.FindElement(By.XPath("//div[contains(@class,'artdeco-modal-overlay ')]/div/button/li-icon"));
             btnCloseModal.Click();
@@ -277,6 +277,35 @@ namespace BotLinkedn.Commands
             var footerDialog = _driver.FindElements(By.XPath("//div[contains(@role,'alertdialog')]/div[contains(@class,'artdeco-modal__actionbar')]/button"));
             var btnDiscard =  footerDialog.Where(r => r.Text.ToLower() == "descartar").FirstOrDefault();
             btnDiscard.Click();
+        }
+
+        private void ClickButtonNextApplyJob()
+        {
+            string xPathBtnSubmitJob = "//footer[contains(@role,'presentation')]/div/button"; 
+
+            var elementsBtn = _driver.FindElements(By.XPath(xPathBtnSubmitJob));
+
+            if(elementsBtn.Count == 0)
+            {
+                throw new Exception($"Elemento botão não encontrado ! { xPathBtnSubmitJob }");
+            }
+
+            elementsBtn.LastOrDefault().Click();
+        }
+
+        public void ValidateIfHasValidations(){
+
+            string xPathValidation = "//span[contains(@class,'artdeco-inline-feedback__message')]";
+
+            var hasValidationsErrors = _driver.FindElements(By.XPath(xPathValidation));
+
+            if(hasValidationsErrors.Count() > 0)
+            {
+                CloseModalJobs();
+            }
+            else{
+                Console.WriteLine("Sucesso !");
+            }
         }
 
         public void ApplyToAllJobs()
@@ -295,6 +324,8 @@ namespace BotLinkedn.Commands
             foreach(IWebElement tileJob in gridJobsResults)
             {
                 tileJob.Click();
+                Thread.Sleep(new TimeSpan(0,0,3));
+                tileJob.Click();
 
                 Thread.Sleep(new TimeSpan(0,0,10));
 
@@ -311,17 +342,13 @@ namespace BotLinkedn.Commands
 
                     WaitUntilElementIsVisible(By.XPath(xPathFormApplyJob), 20);
 
-                    var formApplyJob = _driver.FindElement(By.XPath(xPathFormApplyJob));
-
-                    var buttonNext = formApplyJob.FindElement(By.TagName("button"));
-
-                    buttonNext.Click();
+                    ClickButtonNextApplyJob();
 
                     var resumeArea = _driver.FindElements(By.XPath("//span[contains(@class,'jobs-document-upload__title--is-required')]"));
 
                     if(resumeArea.Count > 0)
                     {
-                        buttonNext.Click();
+                        ClickButtonNextApplyJob();
                     }
 
                     var finalForm = _driver.FindElements(By.XPath("//div[contains(@class,'jobs-easy-apply-content')]/div/form"));
@@ -345,20 +372,29 @@ namespace BotLinkedn.Commands
                             }
                         }
 
-                        var xPathgroupFormNotAccessible = "//div[contains(@class,'jobs-easy-apply-form-section__grouping')]";
+                        // var xPathgroupFormNotAccessible = "//div[contains(@class,'jobs-easy-apply-form-section__grouping')]";
 
-                        bool hasGroupFormNotAccessible = finalForm[0].FindElements(By.XPath(xPathgroupFormNotAccessible)).Count() > 0;
+                        // bool hasGroupFormNotAccessible = finalForm[0].FindElements(By.XPath(xPathgroupFormNotAccessible)).Count() > 0;
 
-                        if(hasGroupFormNotAccessible)
+                        // if(hasGroupFormNotAccessible)
+                        // {
+                        //     CloseModalJobs();
+
+                        //     goto nextTile;
+                        // }
+
+                        ClickButtonNextApplyJob();
+
+                        ValidateIfHasValidations();
+
+                        var xPathElementSuccess = "//div[contains(@role,'dialog')]/button[contains(@aria-label,'Fechar')]";
+
+                        var hasSuccess = _driver.FindElements(By.XPath(xPathElementSuccess));
+
+                        if(hasSuccess.Count() > 0)
                         {
-                            CloseModalJobs();
-
-                            goto nextTile;
+                            hasSuccess.FirstOrDefault().Click();
                         }
-
-                        string xPathBtnSubmitJob = "//footer[contains(@role,'presentation')]/div/button"; 
-
-                        
                     }
                 }
 
